@@ -1,6 +1,6 @@
 {
   "name": "file-migrator",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Module to manage migration of files between app versions",
   "main": "index.js",
   "scripts": {
