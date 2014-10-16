@@ -12,7 +12,7 @@ var FileMigrator = function(fs) {
     };
   };
 
-  var checkForMarker = function(callback) {
+  var checkForMarker = function(marker_prepend, callback) {
     if (!_this.fs) return callback(new Error('no fs defined'));
     var success = function(fileHandle) {
       return callback(null, true);
@@ -22,21 +22,21 @@ var FileMigrator = function(fs) {
       if (!err) return callback(new Error('something went wrong attempting to read the migration marker'));
       return callback(err);
     };
-    _this.fs.root.getFile('files_migrated', {create: false, exclusive: false}, success, failure);
+    _this.fs.root.getFile(marker_prepend + 'files_migrated', {create: false, exclusive: false}, success, failure);
   };
 
-  var setMarker = function(callback) {
+  var setMarker = function(marker_prepend, callback) {
     if (!_this.fs) return callback(new Error('no fs defined'));
     var success = function(fileHandle) {
       var writeSuccess = function(writer) {
         writer.onwrite = function() {
           return callback();
         };
-        writer.write('files_migrated');
+        writer.write(marker_prepend + 'files_migrated');
       };
       fileHandle.createWriter(writeSuccess, callback);
     };
-      _this.fs.root.getFile('files_migrated', {create: true, exclusive: false}, success, callback);
+      _this.fs.root.getFile(marker_prepend + 'files_migrated', {create: true, exclusive: false}, success, callback);
   };
 
   var migrateFiles = function(from, to, callback) {
@@ -55,10 +55,14 @@ var FileMigrator = function(fs) {
     fs.root.getDirectory(from, {create: false, exclusive: true}, success, callback);
   };
 
-  this.migrateIfNecessary = function(from, to, callback) {
+  this.migrateIfNecessary = function(from, to, marker_prepend, callback) {
+    if (typeof marker_prepend === 'function') {
+      callback = marker_prepend;
+      marker_prepend = '';
+    }
     getFs(function(err) {
       if (err) return callback(err);
-      checkForMarker(function(err, present) {
+      checkForMarker(marker_prepend, function(err, present) {
         if (err) return callback(err);
         if (present) return callback(false);
         migrateFiles(from, to, function(err) {
