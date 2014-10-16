@@ -67,7 +67,7 @@ var FileMigrator = function(fs) {
         if (present) return callback(false);
         migrateFiles(from, to, function(err) {
           if (err) return callback(err);
-          setMarker(callback);
+          setMarker(marker_prepend, callback);
         });
       });
     });
